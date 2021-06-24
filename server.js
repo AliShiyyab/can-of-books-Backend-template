@@ -6,12 +6,11 @@ require('dotenv').config();
 /*********************************************************/
 const server = express();
 server.use(cors());
-const bodyParser = require('body-parser')
 /*********************************************************/
 server.use(express.json())
 /**************************** MONGO ******************************/
 const mongoose = require('mongoose'); // import
-mongoose.connect('mongodb://localhost:27017/favBooks', {  //connect with express
+mongoose.connect(process.env.MONGO_URL, {  
     useNewUrlParser: true, useUnifiedTopology: true
 });
 const BookSchema = new mongoose.Schema({
@@ -19,7 +18,7 @@ const BookSchema = new mongoose.Schema({
     description:String,
     status:String,
   });
-const BooksSchema = new mongoose.Schema({  // create
+const BooksSchema = new mongoose.Schema({  
     email: String,
     books: [BookSchema],
 });
@@ -124,4 +123,4 @@ function seedBooks() {
     user1.save();
     user2.save();
 }
-// seedBooks();
+seedBooks();
