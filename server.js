@@ -9,7 +9,7 @@ server.use(cors());
 const bodyParser = require('body-parser')
 /*********************************************************/
 server.use(express.json())
-/*********************************************************/
+/**************************** MONGO ******************************/
 const mongoose = require('mongoose'); // import
 mongoose.connect('mongodb://localhost:27017/favBooks', {  //connect with express
     useNewUrlParser: true, useUnifiedTopology: true
@@ -32,12 +32,12 @@ function booksHandler(req, res) {
   booksModel.find({email:email} , (error , data) => {
     if(error) {console.log(error);}
     else{
+        console.log(data[0].books);
     res.send(data[0].books);}
   } );
 };
 const addNewBook = (req, res) => {
-    const { bookName, description } = req.body;
-    const email = req.query;
+    const {email , bookName, description } = req.body;
     booksModel.find({ email: email }, (error, user) => {
         if (error) res.send(error);
         user[0].books.push({
@@ -52,29 +52,47 @@ const addNewBook = (req, res) => {
 const deleteBook = (req, res) => {
     const id = Number(req.params.id);
     console.log('delete test id= ', id);
-    const email = req.query;
+    const {email} = req.query;
     booksModel.find({ email: email }, (error, user) => {
-        if (error) res.send(error);
+        if (error){ res.send(error);}
         const filterdBooks = user[0].books.filter((book, index) => {
-            return book.id !== index;
+            if (id !== index){
+                return book;
+            }
         });
         user[0].books = filterdBooks;
         user[0].save();
+        console.log(user[0].books);
         res.send(user[0].books);
     });
 };
+const updateBook = (req , res) => {
+    const index = Number(req.params.index) ;
+    const {email , bookName , bookDescription} = req.body ;
+    booksModel.find({email:email} , (error , user) => {
+      if(error) res.send(error);
+      user[0].books[index].name = bookName ;
+      user[0].books[index].description = bookDescription ;
+      console.log(user[0]);
+      user[0].save();
+      res.send(user[0].books);
+    });
+  
+    console.log(email);
+  };
+  
 /*********************************************************/
 const PORT = process.env.PORT;
 /*********************************************************/
 server.listen(PORT, () => {
-    console.log(`Listening on PORT ${PORT} `)
+    console.log(`Listening on PORT : ${PORT} `);
 })
 /*********************************************************/
 server.get('/books', booksHandler);
 server.get('/', homeHandler);
-server.delete('/books/:id' , deleteBook);
 server.post('/books' , addNewBook);
-//////////////////////mongoose////////////////////////////
+server.delete('/books/:id' , deleteBook);
+server.put('/books/:index' , updateBook );
 
 function seedBooks() {
     const user1 = new booksModel({
@@ -102,8 +120,8 @@ function seedBooks() {
         }],
     });
     console.log(user1);
-    console.log(user2); // 'Silence'
+    console.log(user2);
     user1.save();
     user2.save();
 }
-seedBooks();
+// seedBooks();
